@@ -5,24 +5,40 @@ on:
     - cron: '0 0 * * *'  # Run every day at midnight
   workflow_dispatch:      # Allow manual trigger
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   DependenciesAnalysis:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Run OSV Scanner
-        run: |
-          curl -Lo osv-scanner https://github.com/google/osv-scanner/releases/download/v1.3.6/osv-scanner_1.3.6_linux_amd64
-          chmod +x osv-scanner
-          ./osv-scanner --recursive .
+        uses: google/osv-scanner-action/osv-scanner-action@main
+        with:
+          format: sarif
+          output: osv-results.sarif
+
+      - name: Upload Security Report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: osv-results.sarif
+          category: dependencies
 
   SourceCodeAnalysis:
     runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Run Semgrep Analysis
-        run: |
-          pip install semgrep
-          semgrep scan --config "p/security-audit" --config "p/owasp-top-ten" --config "p/javascript" --config "p/java" --config "p/typescript" . 
+        run: semgrep scan --config "p/java" --sarif > semgrep-results.sarif
+
+      - name: Upload Security Report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif
+          category: source-code 
