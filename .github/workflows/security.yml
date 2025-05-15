@@ -40,7 +40,19 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Run Semgrep Analysis
-        run: semgrep scan --config "p/java" --sarif > semgrep-results.sarif
+        run: |
+          semgrep scan \
+            --config "p/java" \
+            --config "p/owasp-top-ten" \
+            --config "p/spring" \
+            --config "p/security-audit" \
+            --config "p/secrets" \
+            --config "p/insecure-transport" \
+            --config "p/jwt" \
+            --config "p/sql-injection" \
+            --config "p/xss" \
+            --config "p/csrf" \
+            --sarif > semgrep-results.sarif
 
       - name: Upload Security Report
         uses: github/codeql-action/upload-sarif@v3
