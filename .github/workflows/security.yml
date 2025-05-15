@@ -23,7 +23,16 @@ jobs:
 
       - name: Run OSV Scanner
         uses: google/osv-scanner-action/osv-scanner-action@main
-        continue-on-error: true
+        with:
+          format: sarif
+          output: osv-results.sarif
+
+      - name: Upload OSV Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: osv-results.sarif
+          category: osv-scanner
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -33,10 +42,11 @@ jobs:
       - name: Install and run Semgrep
         run: |
           pip install semgrep
-          semgrep scan --config "p/java" . || true
-        continue-on-error: true
+          semgrep scan --config "p/java" . --sarif > semgrep-results.sarif || true
 
-      - name: Upload Security Report
-        uses: github/codeql-action/upload-sarif@v2
+      - name: Upload Semgrep Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
         with:
-          sarif_file: semgrep.sarif 
+          sarif_file: semgrep-results.sarif
+          category: semgrep 
