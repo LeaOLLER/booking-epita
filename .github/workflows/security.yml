@@ -23,7 +23,7 @@ jobs:
       - name: Install and Run OSV Scanner
         run: |
           go install github.com/google/osv-scanner/cmd/osv-scanner@latest
-          osv-scanner --format sarif . > results.sarif
+          osv-scanner --format sarif --recursive --lockfile=app/src/build.gradle --lockfile=app/src/gradle.lockfile . > results.sarif
 
       - name: Upload Security Report
         uses: github/codeql-action/upload-sarif@v3
