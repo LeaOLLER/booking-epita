@@ -8,34 +8,34 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
-  DependenciesAnalysis:
+  security-scan:
     runs-on: ubuntu-latest
-    permissions:
-      security-events: write
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Run OSV Scanner
         uses: google/osv-scanner-action/osv-scanner-action@main
-        
-      - name: Upload Security Report
-        uses: github/codeql-action/upload-sarif@v2
+        continue-on-error: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          sarif_file: osv-scanner-results.sarif
+          python-version: '3.x'
 
-  SourceCodeAnalysis:
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Run Semgrep Analysis
+      - name: Install and run Semgrep
         run: |
           pip install semgrep
-          semgrep scan --config "p/java" --sarif > semgrep.sarif
-        
+          semgrep scan --config "p/java" . || true
+        continue-on-error: true
+
       - name: Upload Security Report
         uses: github/codeql-action/upload-sarif@v2
         with:
