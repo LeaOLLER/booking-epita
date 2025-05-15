@@ -18,21 +18,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Run OSV Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@main
+        uses: google/osv-scanner-action@v1
         with:
-          format: sarif
-          output: osv-results.sarif
-
-      - name: Upload OSV Results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: osv-results.sarif
-          category: osv-scanner
+          scan-args: --recursive ./
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -42,11 +32,5 @@ jobs:
       - name: Install and run Semgrep
         run: |
           pip install semgrep
-          semgrep scan --config "p/java" . --sarif > semgrep-results.sarif || true
-
-      - name: Upload Semgrep Results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: semgrep-results.sarif
-          category: semgrep 
+          semgrep scan --config auto
+        continue-on-error: true 
