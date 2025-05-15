@@ -4,33 +4,25 @@ on:
   schedule:
     - cron: '0 0 * * *'  # Run every day at midnight
   workflow_dispatch:      # Allow manual trigger
-  push:                  # Also run on push (for testing)
-    branches:
-      - main
-
-permissions:
-  contents: read
-  security-events: write
 
 jobs:
-  security-scan:
+  DependenciesAnalysis:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
+      
       - name: Run OSV Scanner
-        uses: google/osv-scanner-action/osv-scanner@v1
-        with:
-          scan-args: --recursive ./
+        run: |
+          curl -Lo osv-scanner https://github.com/google/osv-scanner/releases/download/v1.3.6/osv-scanner_1.3.6_linux_amd64
+          chmod +x osv-scanner
+          ./osv-scanner --recursive .
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install and run Semgrep
+  SourceCodeAnalysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Semgrep Analysis
         run: |
           pip install semgrep
-          semgrep scan --config auto
-        continue-on-error: true 
+          semgrep scan --config "p/java" . 
