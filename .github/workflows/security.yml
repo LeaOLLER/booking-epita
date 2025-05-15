@@ -25,4 +25,4 @@ jobs:
       - name: Run Semgrep Analysis
         run: |
           pip install semgrep
-          semgrep scan --config "p/java" . 
+          semgrep scan --config "p/security-audit" --config "p/owasp-top-ten" --config "p/javascript" --config "p/java" --config "p/typescript" . 
